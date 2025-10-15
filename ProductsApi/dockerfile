@@ -1,0 +1,20 @@
+# Build stage - usar SDK do .NET 9
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /app
+
+# Copiar arquivos de projeto e restaurar dependências
+COPY *.sln .
+COPY YourProjectFolder/*.csproj ./YourProjectFolder/
+RUN dotnet restore
+
+# Copiar todo o restante do código e publicar a aplicação
+COPY . .
+WORKDIR /app/YourProjectFolder
+RUN dotnet publish -c Release -o /app/publish
+
+# Runtime stage - apenas runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 80
+ENTRYPOINT ["dotnet", "YourProject.dll"]

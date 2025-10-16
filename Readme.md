@@ -99,3 +99,6 @@ Api/
 * O projeto utiliza **InMemoryDatabase** por padrão, então os dados **não são persistidos** entre reinícios.
 * Para produção, configure um banco de dados real no `appsettings.json` e registre o DbContext correspondente.
 
+
+## FrontEnd
+o front end esta no repositorio [Link](https://github.com/alexpxmort-btos/Products-X)

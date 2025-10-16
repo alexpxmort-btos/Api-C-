@@ -2,15 +2,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductsApi.Data;
 using ProductsApi.Repositories;
+using ProductsApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adiciona DbContext em memória
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ProductsDb"));
 
-// Registra Repository
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+builder.Services.AddScoped<IProductService, ProductService>();
 
 
 
@@ -33,20 +34,27 @@ builder.Services.AddCors(options =>
 });
 
 
+
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
     {
         var errors = context.ModelState
-            .Where(e => e.Value.Errors.Count > 0)
-            .ToDictionary(
-                e => e.Key.ToLower(), // <-- lowercase
-                e => e.Value.Errors.Select(err => err.ErrorMessage).ToArray()
-            );
+            .Where(x => x.Value.Errors.Count > 0)
+            .SelectMany(kvp => kvp.Value.Errors.Select(err => new 
+            { 
+                field = kvp.Key.ToLower(), 
+                message = err.ErrorMessage 
+            }))
+            .ToList();
 
-        return new BadRequestObjectResult(new { errors });
+        return new BadRequestObjectResult(new 
+        {
+            errors
+        });
     };
 });
+
 
 builder.Services.AddAutoMapper(typeof(ProductProfile));
 
@@ -60,7 +68,6 @@ app.UseSwaggerUI(c =>
 });
 
 
-// app.UseHttpsRedirection(); // opcional
 app.UseCors("AllowAngular");
 app.MapControllers();
 
